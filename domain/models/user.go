@@ -15,5 +15,8 @@ type User struct {
 	Email          string        `json:"email" bson:"email"`
 	PhoneNumber    string        `json:"phoneNumber" bson:"phoneNumber"`
 	HashedPassword string        `json:"hashedPassword" bson:"hashedPassword"`
-	FBAccessToken  string        `json:"fbAccessToken" bson:"fbAccessToken"`
+	// Facebook section
+	FBAccessToken string `json:"fbAccessToken" bson:"fbAccessToken"`
+	FBId          string `json:"fbId" bson:"fbId"`
+	FBFriendIds   []string
 }
