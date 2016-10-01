@@ -1,18 +1,19 @@
 package common
 
-import "golang.org/x/oauth2"
+import (
+	"fmt"
+	"net/url"
+	"time"
+	dtos "userservices/DTOs"
 
-const (
-	FB_CLIENT_ID      = "315627565448019"
-	FB_CLIENT_SECRECT = "92abb488a9349ead127b43d3fd3c3805"
-	FB_FETCH_INFO_URL = "https://graph.facebook.com/me?fields=id,name,birthday&access_token="
+	"golang.org/x/oauth2"
 )
 
 type FBScope struct {
-	Email        string
-	UserBirthday string
-	UserLocation string
-	UserAboutMe  string
+	Email        string `json:"email"`
+	UserBirthday string `json:"birthday"`
+	Name         string `json:"name"`
+	UserId       string `json:"id"`
 }
 
 var FBConfigs = oauth2.Config{
@@ -20,8 +21,24 @@ var FBConfigs = oauth2.Config{
 	ClientSecret: FB_CLIENT_SECRECT,
 	Scopes:       []string{"email", "user_birthday", "user_location", "user_about_me"},
 	Endpoint: oauth2.Endpoint{
-		AuthURL:  "https://graph.facebook.com/oauth/authorize",
-		TokenURL: "https://graph.facebook.com/oauth/access_token",
+		AuthURL:  FB_AUTH_URL,
+		TokenURL: FB_TOKEN_URL,
 	},
-	RedirectURL: "http://localhost:8080/auth",
+	RedirectURL: FB_REDIRECT_URL,
+}
+
+func FBGraphURL(accessToken string) string {
+	fmt.Printf("%s", FB_FETCH_INFO_URL)
+	return FB_FETCH_INFO_URL + "?fields=" + FB_FIELDS + "&access_token=" + url.QueryEscape(accessToken)
+}
+
+func MapFBScopeToDTO(fbscope FBScope) dtos.UserDTO {
+	dob, err := time.Parse("01/02/2006", fbscope.UserBirthday)
+	Check(err)
+
+	return dtos.UserDTO{
+		FullName: fbscope.Name,
+		FBId:     fbscope.UserId,
+		Dob:      dob,
+	}
 }

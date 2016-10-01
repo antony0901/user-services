@@ -1,7 +1,9 @@
 package models
 
 import (
+	"strings"
 	"time"
+	dtos "userservices/DTOs"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -19,4 +21,25 @@ type User struct {
 	FBAccessToken string `json:"fbAccessToken" bson:"fbAccessToken"`
 	FBId          string `json:"fbId" bson:"fbId"`
 	FBFriendIds   []string
+}
+
+func NewUser(email string, phoneNumber string) User {
+	return User{
+		Id:          bson.NewObjectId(),
+		Email:       email,
+		PhoneNumber: phoneNumber,
+	}
+}
+
+func (u *User) SetName(fullName string) {
+	s := strings.Split(fullName, " ")
+	u.FirstName = s[0]
+	u.LastName = s[1]
+}
+
+func MapToUser(dto dtos.UserDTO, user *User) {
+	user.SetName(dto.FullName)
+	user.DOB = dto.Dob
+	user.FBAccessToken = dto.FBAccessToken
+	user.FBId = dto.FBId
 }

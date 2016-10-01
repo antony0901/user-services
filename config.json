@@ -1,0 +1,36 @@
+{
+    "AppConfig" : [
+        {
+            "key": "FBClientId",
+            "value": "315627565448019"
+        },
+        {
+            "key": "FBClientSecrect",
+            "value": "92abb488a9349ead127b43d3fd3c3805"
+        },
+        {
+            "key": "FBFetchInfoUrl",
+            "value": "https://graph.facebook.com/me"
+        },
+        {
+            "key": "FBFields",
+            "value": "id,name,birthday"
+        },
+        {
+            "key": "FBScopes",
+            "value": ""
+        },
+        {
+            "key": "FBAuthURL",
+            "value": "https://graph.facebook.com/oauth/authorize"
+        },
+        {
+            "key": "FBTokenURL",
+            "value": "https://graph.facebook.com/oauth/access_token"
+        },
+        {
+            "key": "RedirectURL",
+            "value": "http://localhost:8080/auth"
+        }
+    ]
+}

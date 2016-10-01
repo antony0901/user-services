@@ -1,10 +1,14 @@
 package dtos
 
+import "time"
+
 type UserDTO struct {
-	FirstName     string `json:"firstName" bson:"firstName"`
-	LastName      string `json:"lastName" bson:"lastName"`
-	FullName      string `json:"fullName" bson:"fullName"`
-	FBAccessToken string `json:"fbAccessToken" bson:"fbAccessToken"`
+	FirstName     string    `json:"firstName"`
+	LastName      string    `json:"lastName"`
+	FullName      string    `json:"fullName"`
+	FBAccessToken string    `json:"fbAccessToken"`
+	FBId          string    `json:"fbId"`
+	Dob           time.Time `json:"dob"`
 }
 
 func (u *UserDTO) GetFullName() {

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	dtos "userservices/DTOs"
+	"userservices/domain/models"
 	"userservices/infrastructure/common"
 	"userservices/infrastructure/repositories"
 
@@ -14,7 +14,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var userRepository repositories.UserRepository
+
 func InitAccountRoute(router *gin.Engine) {
+	userRepository = repositories.NewUserRepository()
 	router.GET("/loginviafacebook", loginViaFB)
 	router.GET("/auth", auth)
 	router.GET("/getFBUser", getFBUser)
@@ -38,26 +41,26 @@ func auth(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, common.BAD_REQUEST_MESSAGE)
 	}
 
-	newUser := dtos.UserDTO{
-		FullName:      "linh",
+	dto := dtos.UserDTO{
 		FBAccessToken: token.AccessToken,
 	}
+	user := models.User{}
+	models.MapToUser(dto, &user)
 
-	userRepository := repositories.NewUserRepository()
-
-	userRepository.CreateUser(newUser)
 }
 
 func getFBUser(c *gin.Context) {
-	me := map[string]interface{}{}
-	var tempAccessToken = "EAAEfD8Tre1MBAFWTBwa3Sg2zfjU6XJKhXZB8bI2scZAjUYS9RDjeOouZCdllZAN50CHLa7cXCrih2nG67MEIPj3GGLJ7AZCsENKUsq230dsJ39yToESGfXJMv1y4aRKZBRBIcrr0ZBMGPLOmV9Hvgxbo8BLzGODx6oLN452mUjTtwZDZD"
-	rs, _ := http.Get(common.FB_FETCH_INFO_URL + url.QueryEscape(tempAccessToken))
+	fbResp := common.FBScope{}
+	accessToken := c.Query("accessToken")
+	var fbGraphUrl = common.FBGraphURL(accessToken)
+	fmt.Println(fbGraphUrl)
+	rs, _ := http.Get(fbGraphUrl)
 	defer rs.Body.Close()
-	if err := json.NewDecoder(rs.Body).Decode(&me); err != nil {
+	if err := json.NewDecoder(rs.Body).Decode(&fbResp); err != nil {
 		fmt.Println(err)
 	}
-
+	data := common.MapFBScopeToDTO(fbResp)
 	c.JSON(http.StatusOK, gin.H{
-		"data": me,
+		"data": data,
 	})
 }
