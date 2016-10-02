@@ -3,50 +3,43 @@ package repositories
 import (
 	dtos "userservices/DTOs"
 	"userservices/domain/models"
-	"userservices/infrastructure/mongodb"
 
-	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type UserRepository struct {
-	session *mgo.Session
+	BaseRepository
 }
 
+// NewUserRepository return instant of UserRepository
 func NewUserRepository() UserRepository {
+	bs := NewSession("users")
 	return UserRepository{
-		session: mongodb.GetSession(),
+		BaseRepository: bs,
 	}
 }
 
-func (u *UserRepository) CreateUser(userDto dtos.UserDTO) {
-	newUser := models.User{
-		Id:            bson.NewObjectId(),
-		FirstName:     userDto.FirstName,
-		LastName:      userDto.LastName,
-		FBAccessToken: userDto.FBAccessToken,
-	}
+func (u *UserRepository) CreateUserWithFB(userDto dtos.UserDTO) bool {
+	newUser := models.User{}
+	newUser.MapFromFBUser(userDto)
+	newUser.Id = bson.NewObjectId()
 
-	u.session.DB(mongodb.Database).C(mongodb.Users).Insert(newUser)
+	return u.create(newUser)
 }
 
 func (u *UserRepository) GetUserById(id string) dtos.UserDTO {
 	matchedUser := models.User{}
-	err := u.session.DB(mongodb.Database).C(mongodb.Users).FindId(id).One(&matchedUser)
-	if err != nil {
-		panic(err)
-	}
+	u.GetById(id).One(&matchedUser)
 
 	return mapToDTO(matchedUser)
 }
 
 func (u *UserRepository) GetUserByName(name string) []dtos.UserDTO {
 	var matchedUsers []models.User
-
-	err := u.session.DB(mongodb.Database).C(mongodb.Users).Find(bson.M{"firstName": name}).All(&matchedUsers)
-	if err != nil {
-		panic(err)
+	query := bson.M{
+		"firstName": name,
 	}
+	u.find(query).All(&matchedUsers)
 
 	var rs []dtos.UserDTO
 	for _, user := range matchedUsers {
@@ -56,13 +49,32 @@ func (u *UserRepository) GetUserByName(name string) []dtos.UserDTO {
 	return rs
 }
 
+func (u *UserRepository) GetBy(queries ...interface{}) []dtos.UserDTO {
+	var matchedUsers []models.User
+	u.find(queries).All(&matchedUsers)
+
+	var rs []dtos.UserDTO
+	for _, user := range matchedUsers {
+		rs = append(rs, mapToDTO(user))
+	}
+
+	return rs
+}
+
+func (u *UserRepository) GetOneBy(selector string, searchBy string) models.User {
+	user := models.User{}
+	u.getOneBy(selector, searchBy).One(&user)
+
+	return user
+}
+
+// mapToDTO returns object as DTO or payload object to API.
 func mapToDTO(user models.User) dtos.UserDTO {
 	userDto := dtos.UserDTO{
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
 		FBAccessToken: user.FBAccessToken,
 	}
-	userDto.GetFullName()
 
 	return userDto
 }

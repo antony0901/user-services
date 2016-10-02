@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"userservices/api/controllers"
 
 	gin "github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ var router *gin.Engine
 func main() {
 	// Set router as a default one provided by Gin
 	router = gin.Default()
-
+	router.LoadHTMLGlob("templates/*")
 	// Initalize routes
 	initializeRoute()
 
@@ -20,6 +21,12 @@ func main() {
 }
 
 func initializeRoute() {
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Home",
+		})
+	})
+
 	controllers.InitUserRoutes(router)
 	controllers.InitAccountRoute(router)
 }
