@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"userservices/domain/models"
 	"userservices/infrastructure/common"
 	"userservices/infrastructure/repositories"
 
@@ -23,11 +22,12 @@ func InitAccountRoute(router *gin.Engine) {
 
 // This function should be implemented on client.
 func loginViaFB(c *gin.Context) {
-	authCodeURL := common.FBConfigs.AuthCodeURL("")
-	resp, err := http.Get(authCodeURL)
-	common.Check(err)
+	authCodeURL := common.FBConfigs.AuthCodeURL("foo")
+	fmt.Println(authCodeURL)
 
-	fmt.Println(resp)
+	c.HTML(http.StatusOK, "loginviafb.html", gin.H{
+		"authCodeURL": authCodeURL,
+	})
 }
 
 // Handle RedirectURL request from Facebook
@@ -40,27 +40,34 @@ func auth(c *gin.Context) {
 	}
 
 	fbData := common.GetFBUserInfo(token.AccessToken)
-	matchedUser := models.User{}
-	userRepository.GetOneBy("accessToken", token.AccessToken).One(&matchedUser)
+	fbData.FBAccessToken = token.AccessToken
+
+	matchedUser := userRepository.GetOneBy("fbId", fbData.FBId)
 	if matchedUser.Id != "" {
-		models.MapToUser(fbData, &matchedUser)
+		matchedUser.MapFromFBUser(fbData)
 		userRepository.UpdateById(matchedUser.Id, matchedUser)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"data": common.LOGIN_WITH_FB_SUCCESS,
+		})
 	}
 
-	rs := userRepository.CreateUserWithFB(fbData)
-	respMessage := common.LOGIN_WITH_FB_SUCCESS
-	if !rs {
-		respMessage = common.INTERNAL_EXCEPTION_MESSAGE
-	}
+	if matchedUser.Id == "" {
+		rs := userRepository.CreateUserWithFB(fbData)
+		respMessage := common.LOGIN_WITH_FB_SUCCESS
+		if !rs {
+			respMessage = common.INTERNAL_EXCEPTION_MESSAGE
+		}
 
-	c.JSON(http.StatusInternalServerError, gin.H{
-		"data": respMessage,
-	})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"data": respMessage,
+		})
+	}
 }
 
 func getFBUser(c *gin.Context) {
-	accessToken := c.Query("accessToken")
-	data := common.GetFBUserInfo(accessToken)
+	fbId := c.Query("fbId")
+	matchedUser := userRepository.GetOneBy("fbId", fbId)
+	data := common.FetchInfo(matchedUser.FBAccessToken)
 	c.JSON(http.StatusOK, gin.H{
 		"data": data,
 	})

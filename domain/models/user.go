@@ -17,10 +17,12 @@ type User struct {
 	Email          string        `json:"email" bson:"email"`
 	PhoneNumber    string        `json:"phoneNumber" bson:"phoneNumber"`
 	HashedPassword string        `json:"hashedPassword" bson:"hashedPassword"`
-	// Facebook section
-	FBAccessToken string `json:"fbAccessToken" bson:"fbAccessToken"`
-	FBId          string `json:"fbId" bson:"fbId"`
-	FBFriendIds   []string
+
+	// Facebook basic details
+	FBAccessToken string   `json:"fbAccessToken" bson:"fbAccessToken"`
+	FBId          string   `json:"fbId" bson:"fbId"`
+	FBFriendIds   []string `json:"fbFriends" bson:"fbFriends"`
+	FBPicture     string   `json:"picture" bson:"fbPicture"`
 }
 
 func NewUser(email string, phoneNumber string) User {
@@ -37,9 +39,11 @@ func (u *User) SetName(fullName string) {
 	u.LastName = s[1]
 }
 
-func MapToUser(dto dtos.UserDTO, user *User) {
+func (user *User) MapFromFBUser(dto dtos.UserDTO) {
 	user.SetName(dto.FullName)
 	user.DOB = dto.Dob
 	user.FBAccessToken = dto.FBAccessToken
 	user.FBId = dto.FBId
+	user.Email = dto.Email
+	user.FBPicture = dto.Picture
 }

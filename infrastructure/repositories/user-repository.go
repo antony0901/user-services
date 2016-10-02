@@ -20,13 +20,9 @@ func NewUserRepository() UserRepository {
 }
 
 func (u *UserRepository) CreateUserWithFB(userDto dtos.UserDTO) bool {
-	newUser := models.User{
-		Id:            bson.NewObjectId(),
-		FirstName:     userDto.FirstName,
-		LastName:      userDto.LastName,
-		FBAccessToken: userDto.FBAccessToken,
-		FBId:          userDto.FBId,
-	}
+	newUser := models.User{}
+	newUser.MapFromFBUser(userDto)
+	newUser.Id = bson.NewObjectId()
 
 	return u.create(newUser)
 }
@@ -43,7 +39,7 @@ func (u *UserRepository) GetUserByName(name string) []dtos.UserDTO {
 	query := bson.M{
 		"firstName": name,
 	}
-	u.Find(query).All(&matchedUsers)
+	u.find(query).All(&matchedUsers)
 
 	var rs []dtos.UserDTO
 	for _, user := range matchedUsers {
@@ -55,7 +51,7 @@ func (u *UserRepository) GetUserByName(name string) []dtos.UserDTO {
 
 func (u *UserRepository) GetBy(queries ...interface{}) []dtos.UserDTO {
 	var matchedUsers []models.User
-	u.Find(queries).All(&matchedUsers)
+	u.find(queries).All(&matchedUsers)
 
 	var rs []dtos.UserDTO
 	for _, user := range matchedUsers {
@@ -65,6 +61,13 @@ func (u *UserRepository) GetBy(queries ...interface{}) []dtos.UserDTO {
 	return rs
 }
 
+func (u *UserRepository) GetOneBy(selector string, searchBy string) models.User {
+	user := models.User{}
+	u.getOneBy(selector, searchBy).One(&user)
+
+	return user
+}
+
 // mapToDTO returns object as DTO or payload object to API.
 func mapToDTO(user models.User) dtos.UserDTO {
 	userDto := dtos.UserDTO{
@@ -72,7 +75,6 @@ func mapToDTO(user models.User) dtos.UserDTO {
 		LastName:      user.LastName,
 		FBAccessToken: user.FBAccessToken,
 	}
-	userDto.GetFullName()
 
 	return userDto
 }

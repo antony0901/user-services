@@ -9,8 +9,6 @@ type UserDTO struct {
 	FBAccessToken string    `json:"fbAccessToken"`
 	FBId          string    `json:"fbId"`
 	Dob           time.Time `json:"dob"`
-}
-
-func (u *UserDTO) GetFullName() {
-	u.FullName = u.FirstName + u.LastName
+	Email         string    `json:"email"`
+	Picture       string    `json:"picture"`
 }

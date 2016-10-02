@@ -10,11 +10,11 @@
         },
         {
             "key": "FBFetchInfoUrl",
-            "value": "https://graph.facebook.com/me"
+            "value": "https://graph.facebook.com/v2.7/me"
         },
         {
             "key": "FBFields",
-            "value": "id,name,birthday"
+            "value": "id,name,birthday,picture,email,photos"
         },
         {
             "key": "FBScopes",
@@ -31,6 +31,18 @@
         {
             "key": "RedirectURL",
             "value": "http://localhost:8080/auth"
-        }
+        },
+        {
+            "key" :"GG_JWTTokenURL",
+            "value" : "https://accounts.google.com/o/oauth2/token"
+        },
+        {
+         	"key":	"GGAuthURL",
+         	"value":	"https://accounts.google.com/o/oauth2/auth"
+        },
+        {
+         	"key":	"GGTokenURL",
+         	"value":	"https://accounts.google.com/o/oauth2/token"
+         }
     ]
 }
