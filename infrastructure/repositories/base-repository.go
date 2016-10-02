@@ -2,9 +2,11 @@ package repositories
 
 import (
 	"fmt"
+	"userservices/infrastructure/common"
 	"userservices/infrastructure/mongodb"
 
 	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type BaseRepository struct {
@@ -36,4 +38,26 @@ func (b *BaseRepository) Find(query interface{}) *mgo.Query {
 	fmt.Println("---- collection -----")
 	fmt.Println(b.name)
 	return b.session.DB(mongodb.Database).C(b.name).Find(query)
+}
+
+func (b *BaseRepository) Update(selector interface{}, update interface{}) {
+	b.session.DB(mongodb.Database).C(b.name).Update(selector, update)
+}
+func (b *BaseRepository) UpdateById(id bson.ObjectId, update interface{}) {
+	b.session.DB(mongodb.Database).C(b.name).UpdateId(id, update)
+}
+
+func (b *BaseRepository) GetOneBy(selector string, searchBy string) *mgo.Query {
+	query := bson.M{
+		selector: searchBy,
+	}
+
+	return b.Find(query)
+}
+
+func (b *BaseRepository) create(entity interface{}) bool {
+	err := b.session.DB(mongodb.Database).C(b.name).Insert(entity)
+	common.Check(err)
+
+	return true
 }

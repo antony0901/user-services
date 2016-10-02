@@ -3,7 +3,9 @@ package common
 const (
 	EMAIL_REGX = ""
 	// Response message
-	BAD_REQUEST_MESSAGE = "Something went wrong"
+	BAD_REQUEST_MESSAGE        = "Something went wrong"
+	INTERNAL_EXCEPTION_MESSAGE = "INTERNAL_EXCEPTION_MESSAGE"
+	LOGIN_WITH_FB_SUCCESS      = "LOGIN_WITH_FB_SUCCESS"
 )
 
 // Initialize application config.

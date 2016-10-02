@@ -3,7 +3,6 @@ package repositories
 import (
 	dtos "userservices/DTOs"
 	"userservices/domain/models"
-	"userservices/infrastructure/mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -20,15 +19,16 @@ func NewUserRepository() UserRepository {
 	}
 }
 
-func (u *UserRepository) CreateUser(userDto dtos.UserDTO) {
+func (u *UserRepository) CreateUserWithFB(userDto dtos.UserDTO) bool {
 	newUser := models.User{
 		Id:            bson.NewObjectId(),
 		FirstName:     userDto.FirstName,
 		LastName:      userDto.LastName,
 		FBAccessToken: userDto.FBAccessToken,
+		FBId:          userDto.FBId,
 	}
 
-	u.session.DB(mongodb.Database).C(mongodb.Users).Insert(newUser)
+	return u.create(newUser)
 }
 
 func (u *UserRepository) GetUserById(id string) dtos.UserDTO {
@@ -43,8 +43,19 @@ func (u *UserRepository) GetUserByName(name string) []dtos.UserDTO {
 	query := bson.M{
 		"firstName": name,
 	}
-	// u.GetMany(query, matchedUsers)
 	u.Find(query).All(&matchedUsers)
+
+	var rs []dtos.UserDTO
+	for _, user := range matchedUsers {
+		rs = append(rs, mapToDTO(user))
+	}
+
+	return rs
+}
+
+func (u *UserRepository) GetBy(queries ...interface{}) []dtos.UserDTO {
+	var matchedUsers []models.User
+	u.Find(queries).All(&matchedUsers)
 
 	var rs []dtos.UserDTO
 	for _, user := range matchedUsers {

@@ -53,7 +53,7 @@ func createUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, common.BAD_REQUEST_MESSAGE)
 	}
 
-	ucUserRepository.CreateUser(newUser)
+	ucUserRepository.CreateUserWithFB(newUser)
 	c.JSON(http.StatusOK, gin.H{
 		"data": "create user successfully!",
 	})

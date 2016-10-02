@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
-	dtos "userservices/DTOs"
 	"userservices/domain/models"
 	"userservices/infrastructure/common"
 	"userservices/infrastructure/repositories"
@@ -23,16 +21,16 @@ func InitAccountRoute(router *gin.Engine) {
 	router.GET("/getFBUser", getFBUser)
 }
 
+// This function should be implemented on client.
 func loginViaFB(c *gin.Context) {
 	authCodeURL := common.FBConfigs.AuthCodeURL("")
-	rs, err := http.Get(authCodeURL)
-	if err != nil {
-		fmt.Println(err)
-	}
+	resp, err := http.Get(authCodeURL)
+	common.Check(err)
 
-	fmt.Println(rs)
+	fmt.Println(resp)
 }
 
+// Handle RedirectURL request from Facebook
 func auth(c *gin.Context) {
 	code := c.Query("code")
 	token, err := common.FBConfigs.Exchange(oauth2.NoContext, code)
@@ -41,25 +39,28 @@ func auth(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, common.BAD_REQUEST_MESSAGE)
 	}
 
-	dto := dtos.UserDTO{
-		FBAccessToken: token.AccessToken,
+	fbData := common.GetFBUserInfo(token.AccessToken)
+	matchedUser := models.User{}
+	userRepository.GetOneBy("accessToken", token.AccessToken).One(&matchedUser)
+	if matchedUser.Id != "" {
+		models.MapToUser(fbData, &matchedUser)
+		userRepository.UpdateById(matchedUser.Id, matchedUser)
 	}
-	user := models.User{}
-	models.MapToUser(dto, &user)
 
+	rs := userRepository.CreateUserWithFB(fbData)
+	respMessage := common.LOGIN_WITH_FB_SUCCESS
+	if !rs {
+		respMessage = common.INTERNAL_EXCEPTION_MESSAGE
+	}
+
+	c.JSON(http.StatusInternalServerError, gin.H{
+		"data": respMessage,
+	})
 }
 
 func getFBUser(c *gin.Context) {
-	fbResp := common.FBScope{}
 	accessToken := c.Query("accessToken")
-	var fbGraphUrl = common.FBGraphURL(accessToken)
-	fmt.Println(fbGraphUrl)
-	rs, _ := http.Get(fbGraphUrl)
-	defer rs.Body.Close()
-	if err := json.NewDecoder(rs.Body).Decode(&fbResp); err != nil {
-		fmt.Println(err)
-	}
-	data := common.MapFBScopeToDTO(fbResp)
+	data := common.GetFBUserInfo(accessToken)
 	c.JSON(http.StatusOK, gin.H{
 		"data": data,
 	})

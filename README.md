@@ -9,7 +9,7 @@ This is a open source has built-in Golang that provided some basics of user mana
 5. oauth2 [https://github.com/golang/oauth2]
 6. Go cache [https://github.com/robfig/go-cache]
 
-# Tools
+# Tools (optional)
 1. Atom with go-plus package
 2. Mongodb management studio [http://mms.litixsoft.de/index.php?lang=de/]
 

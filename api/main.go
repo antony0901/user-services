@@ -1,6 +1,10 @@
 package main
 
-import gin "github.com/gin-gonic/gin"
+import (
+	"userservices/api/controllers"
+
+	gin "github.com/gin-gonic/gin"
+)
 
 var router *gin.Engine
 
@@ -16,6 +20,6 @@ func main() {
 }
 
 func initializeRoute() {
-	controllers_user.InitUserRoutes(router)
-	controllers_account.InitAccountRoute(router)
+	controllers.InitUserRoutes(router)
+	controllers.InitAccountRoute(router)
 }
